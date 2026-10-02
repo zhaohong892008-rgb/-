@@ -13,24 +13,18 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Unzip NightShield.zip
+      - name: Unzip and find gradlew
         run: |
           unzip -o NightShield.zip
-          ls -la
-
-      - name: Set up JDK 17
-        uses: actions/setup-java@v4
-        with:
-          java-version: '17'
-          distribution: 'temurin'
-
-      - name: Grant execute permission for gradlew
-        run: |
-          if [ -f "gradlew" ]; then
+          GRADLE_PATH=$(find . -name "gradlew" | head -n 1)
+          if [ -n "$GRADLE_PATH" ]; then
+            DIR=$(dirname "$GRADLE_PATH")
+            cd "$DIR"
             chmod +x gradlew
             ./gradlew assembleDebug
           else
-            echo "未检测到 Android 源码工程，请确认 Zip 解压后的目录结构。"
+            echo "错误：压缩包内未找到 gradlew 编译脚本！"
+            exit 1
           fi
 
       - name: Upload APK Artifact
